@@ -33,11 +33,13 @@ Bootstraps the ATLAS system.
 ]]--!strict
 
 --@ // GLITTER \\ @--
-print("//-------------------------------------------------\\\\")
-print("|         Initializing A.T.L.A.S. v1.0.0            |")
-print("| Automated Transit Ledger and Application Suite    |")
-print("| Brought to you by the Merydian Transit Authority. |")
-print("\\\\-------------------------------------------------//")
+print("//-----------------------------------------------\\")
+print("")
+print("         Initializing A.T.L.A.S. v1.0.0            ")
+print(" Automated Transit Ledger and Application Suite    ")
+print(" Brought to you by the Merydian Transit Authority.")
+print("")
+print("\\\\-----------------------------------------------//")
 
 --@ // TYPE DECLARATIONS \\ @--
 

@@ -5,7 +5,7 @@ local externalFileURLs = {}
 local externalFileInstallers = {"https://raw.githubusercontent.com/Shlomo1412/PixelUI-v2/main/installer.lua"}
 
 function TRY_DOWNLOAD(filePath, fileURL)
-    local result, err = http.get(filePath)
+    local result, err = http.get(fileURL)
     if not result then error("Failed to download " .. filePath .. ": " .. err) end
 
     local myFile = fs.open(filePath, "w")
