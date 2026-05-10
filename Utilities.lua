@@ -1,3 +1,9 @@
+--@ // CONSTANTS \\ @--
+local numOrdinals = {"st", "nd", "rd"}
+
+--@ // VARIABLES \\ @--
+
+--@ // MAIN \\ @--
 local utils = {}
 
 ---Writes a message in the terminal and expects that the user provide a number.
@@ -61,5 +67,10 @@ function utils.requestBoolFromUser(text, denyYN, denyShort)
 
     return bool, response, true
 end
+
+---Returns the ordianl, or suffix, of the numer provided. For example, 1 returns "st", 2 returns "nd", etc.
+---@param n number
+---@return string "st", "nd", "rd", or "th"
+function utils.getNumberOrdinal(n) return (numOrdinals[n % 10] or "th") end
 
 return utils

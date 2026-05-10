@@ -33,13 +33,11 @@ Bootstraps the ATLAS system.
 ]]--!strict
 
 --@ // GLITTER \\ @--
-if fs.find("ATLAS_DOWNLOADER") then shell.run("delete ATLAS_DOWNLOADER"); print("A.T.L.A.S. installation complete! Thank you for choosing the M.T.A.") end
-
-print("┌───────────────────────────────────────────────────┐")
-print("│         Initializing A.T.L.A.S. v1.0.0            │")
-print("│ Automated Transit Ledger and Application Suite    │")
-print("│ Brought to you by the Merydian Transit Authority. │")
-print("└───────────────────────────────────────────────────┘")
+print("//-------------------------------------------------\\\\")
+print("|         Initializing A.T.L.A.S. v1.0.0            |")
+print("| Automated Transit Ledger and Application Suite    |")
+print("| Brought to you by the Merydian Transit Authority. |")
+print("\\\\-------------------------------------------------//")
 
 --@ // TYPE DECLARATIONS \\ @--
 
