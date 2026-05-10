@@ -1,5 +1,5 @@
 local ATLASRepositoryURL = "https://raw.githubusercontent.com/Thegameinglemon10/MTA_ATLAS/main/"
-local internalFileNames = {"startup.lua"}
+local internalFileNames = {"startup.lua", "Utilities.lua", "PrinterUtils.lua", "PrintImpoundNotice.lua"}
 
 local externalFileURLs = {}
 local externalFileInstallers = {"https://raw.githubusercontent.com/Shlomo1412/PixelUI-v2/main/installer.lua"}
