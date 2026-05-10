@@ -26,4 +26,8 @@ parallel.waitForAll(table.unpack(downloadTasks))
 
 print("-- WELCOME TO ATLAS: Downloading complete. --")
 print(".. Running first-time startup. ..")
-sleep(2); shell.run("startup.lua"); shell.run("delete InstallATLAS.lua")
+sleep(2); shell.run("startup.lua");
+
+if fs.exists("InstallATLAS.lua") then
+    fs.delete("InstallATLAS.lua")
+end

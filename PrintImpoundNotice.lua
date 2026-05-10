@@ -46,97 +46,97 @@ local myPrinter = peripheral.find("printer")
 local maxCharsPerLine = printerUtils.PageSize.Width;
 
 --@ // VARIABLES \\ @--
-local curLine = 1;
+local CURRENT_LINE = 1;
 
 --@ // FUNCTIONS \\ @--
 
---@ // MAIN \\ @--
-
---@ // DEPENDENCIES \\ @--
-
---@ // VARIABLES \\ @--
-
-
---@ // FUNCTION \\ @--
-function getNumSuffix(num) return (suffixes[(num % 10)] or "th") end
-function writeAndAdvance(text) printer.write(text); curLine = (curLine + 1); printer.setCursorPos(1, curLine) end
-
-function splitAndWriteInput(inp)
-    local lines = CCString.wrap(inp, maxCharsPerLine)
-    local maxLines = #lines
-
-    for i = 1, 2 do
-        local myLine = (lines[i] or "")
-
-        if (#myLine > maxCharsPerLine) then
-            myLine = (string.sub(myLine, i, -2) .. "..")
-        end
-
-        writeAndAdvance(myLine)
-    end
-
-    writeAndAdvance("")
+---Writes a single line and increments the line pointer.
+---@param text string
+function WRITE_LINE(text)
+    myPrinter.write(text);
+    CURRENT_LINE = (CURRENT_LINE + 1);
+    myPrinter.setCursorPos(1, CURRENT_LINE)
 end
 
-function getFormattedDate(unix) -- Ex: "Aug. 20th"
-    local monthAbbreviated = os.date("%b. ", unix) -- "Aug. "
-    local dayOfTheMonth = tostring(tonumber(os.date("%d", unix))) -- "20", The tostring removes the zero padding ("01" -> "1")
-    local daySuffix = getNumSuffix(tonumber(dayOfTheMonth)) -- "th"
+---Splits the provided text across multiple lines.
+---@param text string
+---@param maxLines number How many lines the text can split across before it's truncated.
+---@param writeAllLines boolean If true, it will write "maxLines" number of lines. If the text doesn't require that many lines, it will still write it as blank.
+function SPLIT_AND_WRITE(text, maxLines, writeAllLines)
+    local myLines = cc_string.wrap(text, maxCharsPerLine)
+    local numLinesRequired = #myLines
+    local numLinesToBeWritten = (writeAllLines and maxLines or math.min(maxLines, numLinesRequired))
+    
+    local mustTruncate = (numLinesToBeWritten < numLinesRequired)
+    for myLineIndex = 1, numLinesToBeWritten do
+        local myLineText = (myLines[myLineIndex] or "")
+
+        if ((myLineIndex == numLinesRequired) and mustTruncate) then
+            myLineText = (string.sub(myLineText, 1, -2) .. "..")
+        end
+
+        WRITE_LINE(myLineText)
+    end
+end
+
+function WRITE_USER_RESPONSE(title, question)
+    WRITE_LINE(title) --> Write title
+
+    write("\n[MTA] "..question.."\n> "); --> Ask Question
+
+    SPLIT_AND_WRITE(read()); --> Write response
+
+    WRITE_LINE("") --> Leave room for next line
+end
+
+function FORMAT_DATE(unixSeconds) -- Ex: "Aug. 20th"
+    local monthAbbreviated = os.date("%b. ", unixSeconds) -- "Aug. "
+    local dayOfTheMonth = tostring(tonumber(os.date("%d", unixSeconds))) -- "20", The tostring removes the zero padding ("01" -> "1")
+    local daySuffix = getNumberOrdinal(tonumber(dayOfTheMonth) or 0) -- "th"
 
     return (monthAbbreviated .. dayOfTheMonth .. daySuffix)
 end
 
---@ // PRINT NOTICE PAGE \\ @--
---> Start Page Write Header
-printer.newPage()
-printer.setPageTitle("M.T.A IMPOUND NOTICE")
-writeAndAdvance("- M.T.A. IMPOUND NOTICE -")
-
---> Write Owner's Name
-writeAndAdvance("Owner's Name:")
-write("\n[MTA] What's the owner's name?\n> "); splitAndWriteInput(read())
-
---> Write Vehicle's Name
-writeAndAdvance("Vehicle's Name:")
-write("\n[MTA] What's the vehicle's name?\n> "); splitAndWriteInput(read())
-
---> Write Registrar's Name
-writeAndAdvance("Registrar's Name:")
-write("\n[MTA] What's your name?\n> "); splitAndWriteInput(read())
-
---> Write Current Date
-writeAndAdvance("Date: " .. getFormattedDate())
-
---> Write Forfeiture Date
-function getDaysUntilForfeiture(failureNotice)
-    write("\n" .. "[MTA] " .. (failureNotice or "") .. "How many days does the owner have until forfeiture?\n> ");
-    
-    local daysUntilForfeiture = tonumber(read())
-    if not daysUntilForfeiture then return getDaysUntilForfeiture("Invalid! Must be a number. ") end
-    if daysUntilForfeiture < 7 then return getDaysUntilForfeiture("Invalid! Must be at least 7. ") end
-
-    return daysUntilForfeiture
+function GET_DAYS_UNTIL_FORFEITURE()
+    local response, isValid = utilities.requestNumFromUser("\n[MTA] How many days does the owner have until forfeiture?\n> ", 7)
+    if not isValid then return GET_DAYS_UNTIL_FORFEITURE() else return response end
 end
 
-local epochSeconds = (os.epoch("utc") / 1000)
-local daysUntilForfeiture = getDaysUntilForfeiture()
-local forfeitureDateUnix = (epochSeconds + (daysUntilForfeiture * 86400))
-writeAndAdvance("Forfeit Date: " .. getFormattedDate(forfeitureDateUnix))
+--@ // CHECK PRINT CAPABILITY \\ @--
+local canPrint, err = printerUtils.canPrint(2)
+if not canPrint then print("Unable to print notice: "..err) return end
+
+--@ // PRINT NOTICE PAGE \\ @--
+--> Start Page Write Header
+myPrinter.newPage()
+myPrinter.setPageTitle("M.T.A IMPOUND NOTICE")
+WRITE_LINE("- M.T.A. IMPOUND NOTICE -")
+
+--> Write owner, vehicle, and registrar's name
+WRITE_USER_RESPONSE("Owner's Name", "What's the owner's name?")
+WRITE_USER_RESPONSE("Vehicle's Name", "What's the vehicle's name?")
+WRITE_USER_RESPONSE("Registrar's Name", "What's your name?")
+
+--> Write Current Date
+WRITE_LINE("Date: " .. FORMAT_DATE())
+
+--> Write Forfeiture Date
+local currentUnixSeconds = (os.epoch("utc") / 1000)
+local daysUntilForfeiture = GET_DAYS_UNTIL_FORFEITURE()
+local forfeitureDateUnixSeconds = (currentUnixSeconds + (daysUntilForfeiture * 86400))
+WRITE_LINE("Forfeit Date: " .. FORMAT_DATE(forfeitureDateUnixSeconds))
 
 --> Write Footer & Print
-writeAndAdvance("")
-writeAndAdvance("")
-writeAndAdvance("ENFORCED BY THE MERYDIAN")
-writeAndAdvance("TRANSIT AUTHORITY UNDER")
-writeAndAdvance("THE GRAND ARBITER")
-printer.write("-------------------------")
-printer.endPage()
+WRITE_LINE("")
+WRITE_LINE("")
+WRITE_LINE("ENFORCED BY THE MERYDIAN")
+WRITE_LINE("TRANSIT AUTHORITY UNDER")
+WRITE_LINE("THE GRAND ARBITER")
+myPrinter.write("-------------------------")
+myPrinter.endPage()
 
 --[[ PRINT DECREE PAGE ]]--
-printer.newPage()
-printer.setPageTitle("M.T.A IMPOUND DECREE")
-
-local decreeLines = {
+printerUtils.printFromLineArray({
     "- DECREE OF IMPOUNDMENT -";
     "";
     "I, the Registrar, with";
@@ -158,11 +158,6 @@ local decreeLines = {
     "violations, or other";
     "inquires.";
     "-------------------------";
-}
+}, "M.T.A IMPOUND DECREE")
 
-for lineIndex, myLine in ipairs(decreeLines) do
-    printer.write(myLine); printer.setCursorPos(1, lineIndex + 1)
-end
-
-printer.endPage()
-print("\n[MTA] Impound notice printed. Thank you for your service!")
+print("\n[MTA] Finished printing. Thank you for your service!")
